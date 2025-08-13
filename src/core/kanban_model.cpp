@@ -1,3 +1,19 @@
+
+#include "kanban_model.h"
+
+void KanbanModel::reloadMailboxes() {
+    if (!isConnected()) {
+        return;
+    }
+    m_availableMailboxes = m_imapClient->listMailboxes();
+    // If no visible mailboxes are configured, use all available ones
+    if (m_settings.visibleMailboxes().isEmpty()) {
+        m_settings.setVisibleMailboxes(m_availableMailboxes);
+    }
+    emit mailboxesChanged();
+    // Optionally refresh mailbox contents
+    refreshAll();
+}
 #include "kanban_model.h"
 #include <QDebug>
 

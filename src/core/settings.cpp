@@ -85,3 +85,26 @@ void Settings::load() {
     m_visibleMailboxes = m_settings.value("kanban/visibleMailboxes", QStringList()).toStringList();
     m_refreshInterval = m_settings.value("ui/refreshInterval", 30).toInt();
 }
+
+void Settings::loadFromFile(const QString& path) {
+    QSettings fileSettings(path, QSettings::IniFormat);
+    m_imapServer = fileSettings.value("imap/server", "").toString();
+    m_imapPort = fileSettings.value("imap/port", 993).toInt();
+    m_useSSL = fileSettings.value("imap/ssl", true).toBool();
+    m_username = fileSettings.value("imap/username", "").toString();
+    m_password = fileSettings.value("imap/password", "").toString();
+    m_visibleMailboxes = fileSettings.value("kanban/visibleMailboxes", QStringList()).toStringList();
+    m_refreshInterval = fileSettings.value("ui/refreshInterval", 30).toInt();
+}
+
+void Settings::saveToFile(const QString& path) const {
+    QSettings fileSettings(path, QSettings::IniFormat);
+    fileSettings.setValue("imap/server", m_imapServer);
+    fileSettings.setValue("imap/port", m_imapPort);
+    fileSettings.setValue("imap/ssl", m_useSSL);
+    fileSettings.setValue("imap/username", m_username);
+    fileSettings.setValue("imap/password", m_password);
+    fileSettings.setValue("kanban/visibleMailboxes", m_visibleMailboxes);
+    fileSettings.setValue("ui/refreshInterval", m_refreshInterval);
+    fileSettings.sync();
+}

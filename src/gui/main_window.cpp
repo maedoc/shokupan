@@ -23,6 +23,12 @@ MainWindow::MainWindow(QWidget* parent)
     setupKeyboardShortcuts();
     
     // Connect model signals
+    // Defensive: log if model is null before connecting
+#ifdef QT_DEBUG
+    if (!m_model) {
+        qDebug() << "MainWindow: m_model is null when connecting signals";
+    }
+#endif
     connect(m_model, &KanbanModel::connected, this, &MainWindow::onConnected);
     connect(m_model, &KanbanModel::disconnected, this, &MainWindow::onDisconnected);
     connect(m_model, &KanbanModel::error, this, &MainWindow::onError);

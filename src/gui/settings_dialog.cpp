@@ -236,7 +236,8 @@ void SettingsDialog::onRefreshMailboxes() {
             "Please connect to the IMAP server first.");
         return;
     }
-    
+    // Force model to reload mailboxes from server
+    m_model->reloadMailboxes();
     updateMailboxList();
     QMessageBox::information(this, "Refresh Mailboxes", "Mailbox list refreshed.");
 }

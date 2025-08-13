@@ -40,10 +40,14 @@ public:
     bool markCardAsFlagged(const QString& uid, const QString& mailbox, bool flagged = true);
 
     // Refresh operations
+
     void refreshAll();
     void refreshMailbox(const QString& mailbox);
     void setAutoRefresh(bool enabled);
     bool autoRefreshEnabled() const;
+
+    // Reload mailbox list from server
+    void reloadMailboxes();
 
 signals:
     void connected();

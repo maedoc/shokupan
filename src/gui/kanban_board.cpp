@@ -146,6 +146,12 @@ KanbanBoard::KanbanBoard(KanbanModel* model, QWidget* parent)
 {
     setupUI();
     
+    // Defensive: log if model is null before connecting
+#ifdef QT_DEBUG
+    if (!m_model) {
+        qDebug() << "KanbanBoard: m_model is null when connecting signals";
+    }
+#endif
     connect(m_model, &KanbanModel::connected, this, &KanbanBoard::onConnected);
     connect(m_model, &KanbanModel::disconnected, this, &KanbanBoard::onDisconnected);
     connect(m_model, &KanbanModel::mailboxesChanged, this, &KanbanBoard::onMailboxesChanged);

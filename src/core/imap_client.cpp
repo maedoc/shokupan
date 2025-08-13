@@ -12,6 +12,12 @@ ImapClient::ImapClient(QObject* parent)
     , m_port(993)
     , m_useSSL(true)
 {
+    // Defensive: ensure m_socket is valid
+#ifdef QT_DEBUG
+    if (!m_socket) {
+        qDebug() << "ImapClient: m_socket is null when connecting signals";
+    }
+#endif
     connect(m_socket, &QSslSocket::connected, this, &ImapClient::onSocketConnected);
     connect(m_socket, &QSslSocket::disconnected, this, &ImapClient::onSocketDisconnected);
     connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QSslSocket::errorOccurred),
@@ -88,10 +94,41 @@ void ImapClient::authenticate(const QString& username, const QString& password) 
 
 QStringList ImapClient::listMailboxes() {
     if (m_state != Authenticated && m_state != Selected) {
+        qDebug() << "IMAP LIST: Not authenticated or selected.";
         return QStringList();
     }
-    
-    return listCommand();
+    QStringList mailboxes = listCommand();
+    qDebug() << "IMAP LIST: Top-level mailboxes:" << mailboxes;
+    // Recursively traverse mailboxes
+    QSet<QString> allMailboxes;
+    std::function<void(const QString&)> traverse;
+    traverse = [&](const QString& parent) {
+        QString tag = generateTag();
+        QString command = QString("%1 LIST \"%2\" \"*\"").arg(tag, parent);
+        sendCommand(command);
+        QStringList responses = readMultilineResponse();
+        for (const QString& response : responses) {
+            if (response.startsWith("*") && response.contains("LIST")) {
+                QRegularExpression re("\\* LIST \\([^)]*\\) \"[^\"]*\" \"([^\"]+)\"");
+                QRegularExpressionMatch match = re.match(response);
+                if (match.hasMatch()) {
+                    QString mailbox = match.captured(1);
+                    if (!allMailboxes.contains(mailbox)) {
+                        allMailboxes.insert(mailbox);
+                        qDebug() << "IMAP RECURSIVE MAILBOX:" << mailbox;
+                        // Traverse children if not already traversed
+                        traverse(mailbox);
+                    }
+                }
+            }
+        }
+    };
+    for (const QString& mailbox : mailboxes) {
+        allMailboxes.insert(mailbox);
+        traverse(mailbox);
+    }
+    qDebug() << "IMAP ALL MAILBOXES:" << allMailboxes.values();
+    return allMailboxes.values();
 }
 
 bool ImapClient::selectMailbox(const QString& mailbox) {
@@ -220,6 +257,7 @@ void ImapClient::onSocketDisconnected() {
 void ImapClient::onSocketError(QAbstractSocket::SocketError error) {
     Q_UNUSED(error)
     m_lastError = m_socket->errorString();
+    qDebug() << "IMAP SOCKET ERROR:" << m_lastError;
     m_state = Error;
     emit this->error(m_lastError);
 }
@@ -242,43 +280,41 @@ void ImapClient::onReadyRead() {
 
 void ImapClient::sendCommand(const QString& command) {
     QString fullCommand = command + "\r\n";
+    qDebug() << "IMAP SEND:" << command;
     m_socket->write(fullCommand.toUtf8());
     m_socket->flush();
 }
 
 QString ImapClient::readResponse() {
     if (!waitForResponse()) {
+        qDebug() << "IMAP ERROR: No response received.";
         return QString();
     }
-    
     int endIndex = m_responseBuffer.indexOf("\r\n");
     if (endIndex == -1) {
+        qDebug() << "IMAP ERROR: Malformed response.";
         return QString();
     }
-    
     QString response = m_responseBuffer.left(endIndex);
     m_responseBuffer.remove(0, endIndex + 2);
-    
+    qDebug() << "IMAP RECV:" << response;
     return response;
 }
 
 QStringList ImapClient::readMultilineResponse() {
     QStringList responses;
-    
     while (true) {
         QString response = readResponse();
         if (response.isEmpty()) {
             break;
         }
-        
         responses.append(response);
-        
         // Check if this is the final response (tagged response)
-        if (response.contains(QRegularExpression("^A\\d+ (OK|NO|BAD)"))) {
+    if (response.contains(QRegularExpression("^A\\d+ (OK|NO|BAD)"))) {
             break;
         }
     }
-    
+    qDebug() << "IMAP MULTILINE RECV:" << responses;
     return responses;
 }
 
@@ -320,22 +356,21 @@ bool ImapClient::parseResponse(const QString& response, QString& tag, QString& s
 bool ImapClient::loginCommand(const QString& username, const QString& password) {
     QString tag = generateTag();
     QString command = QString("%1 LOGIN %2 %3").arg(tag, username, password);
-    
     sendCommand(command);
-    
     QString response = readResponse();
     QString responseTag, status, data;
-    
     if (parseResponse(response, responseTag, status, data) && responseTag == tag) {
         if (status == "OK") {
+            qDebug() << "IMAP LOGIN SUCCESS";
             return true;
         } else {
             m_lastError = "Login failed: " + data;
+            qDebug() << "IMAP LOGIN FAILED:" << m_lastError;
         }
     } else {
         m_lastError = "Invalid login response: " + response;
+        qDebug() << "IMAP LOGIN INVALID RESPONSE:" << response;
     }
-    
     return false;
 }
 
@@ -350,11 +385,16 @@ QStringList ImapClient::listCommand() {
     
     for (const QString& response : responses) {
         if (response.startsWith("*") && response.contains("LIST")) {
-            // Parse LIST response: * LIST (\HasNoChildren) "/" "INBOX"
-            QRegularExpression re("\\* LIST \\([^)]*\\) \"[^\"]*\" \"([^\"]+)\"");
-            QRegularExpressionMatch match = re.match(response);
-            if (match.hasMatch()) {
-                mailboxes.append(match.captured(1));
+            // Parse LIST response: * LIST (\HasNoChildren) "." BACKLOG
+            // The mailbox name is the last word in the response
+            QStringList parts = response.split(' ', Qt::SkipEmptyParts);
+            if (parts.size() >= 4) {
+                QString mailboxName = parts.last();
+                // Remove quotes if present
+                if (mailboxName.startsWith('"') && mailboxName.endsWith('"')) {
+                    mailboxName = mailboxName.mid(1, mailboxName.length() - 2);
+                }
+                mailboxes.append(mailboxName);
             }
         }
     }

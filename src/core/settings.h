@@ -8,6 +8,10 @@ class Settings {
 public:
     Settings();
     
+    // Load/save from a specific INI file (used by tests/automation)
+    void loadFromFile(const QString& path);
+    void saveToFile(const QString& path) const;
+
     // IMAP connection settings
     QString imapServer() const;
     void setImapServer(const QString& server);

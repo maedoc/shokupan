@@ -7,9 +7,6 @@ services:
     ports:
       - "143:143"   # IMAP
       - "993:993"   # IMAPS
-    volumes:
-      - ./mail:/var/mail
-      - ./config:/etc/dovecot/conf.d
     environment:
       - DOVECOT_USER=testuser
       - DOVECOT_PASS=testpass

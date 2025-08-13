@@ -41,6 +41,7 @@ private:
     KanbanModel* m_model;
     bool m_connected;
     QString m_lastError;
+    bool m_verbose;
     int m_argc;
     char** m_argv;
 };

@@ -1,5 +1,7 @@
 # shokupan
 
+![](shokupan.jpg)
+
 A cross-platform Kanban/Trello-style application that works entirely on top of IMAP. Different lists are mailboxes, and cards are emails.
 
 ## Features
@@ -51,6 +53,9 @@ A Docker setup is provided to run a local Dovecot IMAP server for testing:
 cd docker
 docker-compose up -d
 ```
+
+For automated CLI end-to-end tests there's a simple harness in `tests/cli_e2e.sh` which starts the docker environment, runs the CLI against it (using `--config`) and tears down the containers.
+
 
 This creates a test environment with predefined mailboxes and test emails.
 

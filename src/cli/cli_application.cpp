@@ -2,12 +2,14 @@
 #include <QTextStream>
 #include <QEventLoop>
 #include <QTimer>
+#include <QLoggingCategory>
 #include <iostream>
 
 CliApplication::CliApplication(int argc, char* argv[])
     : QCoreApplication(argc, argv)
     , m_model(nullptr)
     , m_connected(false)
+    , m_verbose(false)
     , m_argc(argc)
     , m_argv(argv)
 {
@@ -41,6 +43,9 @@ int CliApplication::run() {
     // Try to process manually first
     if (args.size() > 1 && (args[1] == "--help" || args[1] == "-h")) {
         std::cout << "Usage: imap-kanban-cli [options] command" << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "      --verbose     Enable verbose logging output" << std::endl;
+        std::cout << "  -c, --config      Configuration file path" << std::endl;
         std::cout << "Commands:" << std::endl;
         std::cout << "  list-mailboxes    List available mailboxes" << std::endl;
         std::cout << "  show-cards        Show cards in a mailbox" << std::endl;
@@ -49,8 +54,6 @@ int CliApplication::run() {
         return 0;
     }
     
-    // For now, let's skip the parser and handle manually
-    // m_parser.process(args);
     return executeCommand();
 }
 
@@ -87,6 +90,10 @@ void CliApplication::setupCommandLineParser() {
     QCommandLineOption configFileOption(QStringList() << "c" << "config",
         "Configuration file path", "config");
     m_parser.addOption(configFileOption);
+    
+    QCommandLineOption verboseOption("verbose",
+        "Enable verbose logging output");
+    m_parser.addOption(verboseOption);
 }
 
 int CliApplication::executeCommand() {
@@ -96,13 +103,45 @@ int CliApplication::executeCommand() {
         args << QString::fromLocal8Bit(m_argv[i]);
     }
     
-    if (args.size() < 2) {
+    // Process arguments with the parser first
+    m_parser.process(args);
+    
+    // Handle verbose logging flag
+    m_verbose = m_parser.isSet("verbose");
+    if (m_verbose) {
+        // Enable Qt debug output
+        QLoggingCategory::setFilterRules("*=true");
+    } else {
+        // Disable Qt debug output (default)
+        QLoggingCategory::setFilterRules("*.debug=false");
+    }
+    
+    // If a config file was provided, load it into the model settings before any network activity
+    QString configPath = m_parser.value("config");
+    if (!configPath.isEmpty()) {
+        if (!m_model) {
+            m_model = new KanbanModel(this);
+#ifdef QT_DEBUG
+            if (!m_model) {
+                qDebug() << "CliApplication: failed to allocate m_model";
+            }
+#endif
+            connect(m_model, &KanbanModel::connected, this, &CliApplication::onConnected);
+            connect(m_model, &KanbanModel::disconnected, this, &CliApplication::onDisconnected);
+            connect(m_model, &KanbanModel::error, this, &CliApplication::onError);
+        }
+        m_model->settings().loadFromFile(configPath);
+    }
+    
+    // Get positional arguments (commands)
+    const QStringList positionalArgs = m_parser.positionalArguments();
+    if (positionalArgs.isEmpty()) {
         std::cout << "Usage: imap-kanban-cli [options] command" << std::endl;
         std::cout << "Use --help for more information" << std::endl;
         return 1;
     }
     
-    const QString command = args[1];
+    const QString command = positionalArgs.first();
     
     if (command == "configure") {
         // Initialize model for configuration
@@ -396,8 +435,10 @@ bool CliApplication::waitForConnection(int timeoutMs) {
     timer.setSingleShot(true);
     
     connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
-    connect(this, &CliApplication::onConnected, &loop, &QEventLoop::quit);
-    connect(this, &CliApplication::onError, &loop, &QEventLoop::quit);
+    if (m_model) {
+        connect(m_model, &KanbanModel::connected, &loop, &QEventLoop::quit);
+        connect(m_model, &KanbanModel::error, &loop, &QEventLoop::quit);
+    }
     
     timer.start(timeoutMs);
     loop.exec();
