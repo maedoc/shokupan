@@ -1,5 +1,7 @@
 # shokupan
 
+![](shokupan.jpg)
+
 A cross-platform Kanban/Trello-style application that works entirely on top of IMAP. Different lists are mailboxes, and cards are emails.
 
 ## Features
