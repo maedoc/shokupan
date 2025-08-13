@@ -1,2 +1,0 @@
-/usr/bin/ar qc libimap-kanban-core.a "CMakeFiles/imap-kanban-core.dir/imap-kanban-core_autogen/mocs_compilation.cpp.o" "CMakeFiles/imap-kanban-core.dir/src/core/imap_client.cpp.o" "CMakeFiles/imap-kanban-core.dir/src/core/email_card.cpp.o" "CMakeFiles/imap-kanban-core.dir/src/core/mailbox_list.cpp.o" "CMakeFiles/imap-kanban-core.dir/src/core/settings.cpp.o" "CMakeFiles/imap-kanban-core.dir/src/core/kanban_model.cpp.o"
-/usr/bin/ranlib libimap-kanban-core.a
