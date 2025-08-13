@@ -1,0 +1,20 @@
+Return-Path: <user@example.com>
+Delivered-To: testuser@localhost
+Received: from example.com
+	by localhost with IMAP
+	for <testuser@localhost>; Tue, 13 Aug 2024 10:00:00 +0000
+Date: Tue, 13 Aug 2024 10:00:00 +0000
+From: user@example.com
+To: testuser@localhost
+Subject: Implement user authentication
+Message-ID: <001@example.com>
+
+Implement user authentication system with login/logout functionality.
+
+Requirements:
+- Username/password validation
+- Session management
+- Password hashing
+- Remember me option
+
+Priority: High

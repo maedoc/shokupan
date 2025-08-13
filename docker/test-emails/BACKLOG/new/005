@@ -1,0 +1,20 @@
+Return-Path: <user@example.com>
+Delivered-To: testuser@localhost
+Received: from example.com
+	by localhost with IMAP
+	for <testuser@localhost>; Tue, 13 Aug 2024 11:00:00 +0000
+Date: Tue, 13 Aug 2024 11:00:00 +0000
+From: user@example.com
+To: testuser@localhost
+Subject: Add mobile responsive design
+Message-ID: <005@example.com>
+
+Make the application mobile-friendly with responsive design.
+
+This is a future enhancement that can be tackled after the core functionality is complete.
+
+Considerations:
+- Touch-friendly interface
+- Responsive layouts
+- Mobile navigation
+- Performance optimization

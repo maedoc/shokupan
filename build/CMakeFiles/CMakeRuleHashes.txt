@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+a3308410e989069d8cb71f7524e45056 CMakeFiles/imap-kanban-cli_autogen
+04108352af0e38afd601eaf8e6139f08 CMakeFiles/imap-kanban-core_autogen
+364c5385b69c9dfeb40a396c4e74de6e CMakeFiles/imap-kanban-gui_autogen

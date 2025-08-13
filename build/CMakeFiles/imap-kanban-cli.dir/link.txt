@@ -1,0 +1,1 @@
+/usr/bin/c++ "CMakeFiles/imap-kanban-cli.dir/imap-kanban-cli_autogen/mocs_compilation.cpp.o" "CMakeFiles/imap-kanban-cli.dir/src/cli/main.cpp.o" "CMakeFiles/imap-kanban-cli.dir/src/cli/cli_application.cpp.o" -o imap-kanban-cli  libimap-kanban-core.a /usr/lib/x86_64-linux-gnu/libQt6Network.so.6.4.2 /usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2 

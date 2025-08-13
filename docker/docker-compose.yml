@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  dovecot:
+    build: .
+    container_name: imap-kanban-dovecot
+    ports:
+      - "143:143"   # IMAP
+      - "993:993"   # IMAPS
+    volumes:
+      - ./mail:/var/mail
+      - ./config:/etc/dovecot/conf.d
+    environment:
+      - DOVECOT_USER=testuser
+      - DOVECOT_PASS=testpass
+    restart: unless-stopped
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: imap-kanban-mailcatcher
+    ports:
+      - "1080:1080"  # Web interface
+      - "1025:1025"  # SMTP
+    restart: unless-stopped

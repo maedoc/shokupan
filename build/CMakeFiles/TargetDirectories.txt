@@ -1,0 +1,14 @@
+/workspace/project/build/CMakeFiles/imap-kanban-core.dir
+/workspace/project/build/CMakeFiles/imap-kanban-cli.dir
+/workspace/project/build/CMakeFiles/imap-kanban-gui.dir
+/workspace/project/build/CMakeFiles/package.dir
+/workspace/project/build/CMakeFiles/package_source.dir
+/workspace/project/build/CMakeFiles/edit_cache.dir
+/workspace/project/build/CMakeFiles/rebuild_cache.dir
+/workspace/project/build/CMakeFiles/list_install_components.dir
+/workspace/project/build/CMakeFiles/install.dir
+/workspace/project/build/CMakeFiles/install/local.dir
+/workspace/project/build/CMakeFiles/install/strip.dir
+/workspace/project/build/CMakeFiles/imap-kanban-core_autogen.dir
+/workspace/project/build/CMakeFiles/imap-kanban-cli_autogen.dir
+/workspace/project/build/CMakeFiles/imap-kanban-gui_autogen.dir
